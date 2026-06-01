@@ -155,21 +155,18 @@ class SageMakerRayLauncher(object):
 
     def start_ray_cluster(self, master_ip):
         if ray.__version__ >= "0.6.5":
-            p = subprocess.Popen("ray start --head --redis-port=6379 --node-ip-address=%s" % master_ip,
-                                 shell=True,
-                                 stderr=subprocess.STDOUT)
+            command = ["ray", "start", "--head", "--redis-port=6379", "--node-ip-address=%s" % master_ip]
         else:
-            p = subprocess.Popen("ray start --head --redis-port=6379 --no-ui --node-ip-address=%s" % master_ip,
-                                 shell=True,
-                                 stderr=subprocess.STDOUT)
+            command = ["ray", "start", "--head", "--redis-port=6379", "--no-ui", "--node-ip-address=%s" % master_ip]
+        p = subprocess.Popen(command, shell=False, stderr=subprocess.STDOUT)
 
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not start Ray server.")
 
     def join_ray_cluster(self, master_ip, node_ip):
-        p = subprocess.Popen("ray start --redis-address=%s:6379 --node-ip-address=%s" % (master_ip, node_ip),
-                             shell=True, stderr=subprocess.STDOUT)
+        command = ["ray", "start", "--redis-address=%s:6379" % master_ip, "--node-ip-address=%s" % node_ip]
+        p = subprocess.Popen(command, shell=False, stderr=subprocess.STDOUT)
         time.sleep(3)
         if p.poll() != 0:
             raise RuntimeError("Could not join Ray server running at %s:6379" % master_ip)
